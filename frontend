@@ -1,0 +1,8 @@
+CREATE TABLE "registration" (
+	"ID"	INTEGER,
+	"Name"	varchar(100) NOT NULL,
+	"Email"	varchar(100) NOT NULL UNIQUE,
+	"DateOfBirth"	DATE NOT NULL,
+	"RegistrationDate"	TIMESTAMP,
+	PRIMARY KEY("ID" AUTOINCREMENT)
+);
