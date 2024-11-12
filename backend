@@ -1,0 +1,100 @@
+import mysql.connector
+from mysql.connector import Error
+from datetime import datetime
+
+# Connect to MySQL Database
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="username",
+        password="password",
+        database="your_database_name"
+    )
+
+# Create (Insert) Operation
+def create_registration(name, email, date_of_birth, status='Active'):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        query = """
+        INSERT INTO Registration (Name, Email, DateOfBirth, Status)
+        VALUES (%s, %s, %s, %s);
+        """
+        cursor.execute(query, (name, email, date_of_birth, status))
+        conn.commit()
+        print(f"New registration added with ID {cursor.lastrowid}.")
+    except Error as e:
+        conn.rollback()
+        if e.errno == 1062:  # Duplicate entry error code
+            print("Error: Email must be unique.")
+        else:
+            print(f"An error occurred: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+# Read (Select) Operation
+def read_registration(id):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = "SELECT * FROM Registration WHERE ID = %s;"
+        cursor.execute(query, (id,))
+        registration = cursor.fetchone()
+        if registration:
+            return registration
+        else:
+            print("Registration not found.")
+    except Error as e:
+        print(f"An error occurred: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+# Update Operation
+def update_registration(id, name=None, email=None, date_of_birth=None, status=None):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        query = """
+        UPDATE Registration
+        SET Name = COALESCE(%s, Name),
+            Email = COALESCE(%s, Email),
+            DateOfBirth = COALESCE(%s, DateOfBirth),
+            Status = COALESCE(%s, Status)
+        WHERE ID = %s;
+        """
+        cursor.execute(query, (name, email, date_of_birth, status, id))
+        conn.commit()
+        if cursor.rowcount:
+            print("Registration updated successfully.")
+        else:
+            print("Registration not found.")
+    except Error as e:
+        conn.rollback()
+        if e.errno == 1062:  # Duplicate entry error code
+            print("Error: Email must be unique.")
+        else:
+            print(f"An error occurred: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+# Delete Operation
+def delete_registration(id):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        query = "DELETE FROM Registration WHERE ID = %s;"
+        cursor.execute(query, (id,))
+        conn.commit()
+        if cursor.rowcount:
+            print("Registration deleted successfully.")
+        else:
+            print("Registration not found.")
+    except Error as e:
+        conn.rollback()
+        print(f"An error occurred: {e}")
+    finally:
+        cursor.close()
+        conn.close()
